@@ -194,7 +194,10 @@ def fields_by_regex(text):
         "vendor": re.sub(r"^[^A-Za-z0-9]+", "", re.sub(r"\s*INVOICE$", "", first_line or "")).strip() or None,
         "subtotal": money_to_float(first(rf"Subtotal\s*:?\s*\$?\s*({MONEY})", re.IGNORECASE)),
         "tax": money_to_float(first(rf"Tax\b[^\n]*?({MONEY})", re.IGNORECASE)),
-        "total": money_to_float(first(rf"^\s*Total\s*:?\s*\$?\s*({MONEY})", re.MULTILINE)),
+        # OCR often prefixes the label with a glyph ("! Total", ", Total").
+        # Letters are not skipped, so Subtotal is not read as Total.
+        "total": money_to_float(first(
+            rf"^\s*[^\nA-Za-z]{{0,3}}\s*Total\s*:?\s*\$?\s*({MONEY})", re.MULTILINE)),
         "items": items,
     }
 
